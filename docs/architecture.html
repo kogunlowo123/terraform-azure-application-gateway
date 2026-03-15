@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>terraform-azure-application-gateway | Architecture</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#0b0c0b;color:#f5f2eb;font-family:'SF Mono','Cascadia Code','Fira Code',monospace;line-height:1.7;padding:0}
+a{color:#c8420a;text-decoration:none}a:hover{text-decoration:underline}
+.container{max-width:1200px;margin:0 auto;padding:2rem}
+header{background:linear-gradient(135deg,#0b0c0b 0%,#1a1b1a 100%);border-bottom:2px solid #c8420a;padding:2rem 0}
+header .container{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:1rem}
+h1{font-size:1.8rem;color:#f5f2eb}h2{font-size:1.4rem;color:#c8420a;margin:2rem 0 1rem;padding-bottom:0.5rem;border-bottom:1px solid #2a2b2a}
+.badge{background:#0078D4;color:#fff;padding:0.3rem 1rem;border-radius:4px;font-size:0.85rem;font-weight:600;letter-spacing:0.5px}.badge-type{background:#c8420a}
+.summary{background:#1a1b1a;border:1px solid #2a2b2a;border-radius:8px;padding:1.5rem;margin:1.5rem 0;font-size:0.95rem;line-height:1.8}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:1rem;margin:1.5rem 0}
+.card{background:#1a1b1a;border:1px solid #2a2b2a;border-radius:8px;padding:1.25rem;transition:border-color 0.2s}.card:hover{border-color:#c8420a}
+.card-title{font-size:0.95rem;color:#c8420a;margin-bottom:0.5rem}.card-value{font-size:1.3rem;color:#f5f2eb;font-weight:700}.card-desc{font-size:0.8rem;color:#888;margin-top:0.25rem}
+.arch-diagram{background:#1a1b1a;border:1px solid #2a2b2a;border-radius:8px;padding:2rem;margin:1.5rem 0;overflow-x:auto}
+.flow{display:flex;flex-direction:column;align-items:center;gap:1rem}
+.flow-row{display:flex;gap:1rem;flex-wrap:wrap;justify-content:center;align-items:center}
+.flow-box{background:#0b0c0b;border:2px solid #c8420a;border-radius:8px;padding:0.75rem 1.25rem;text-align:center;font-size:0.85rem;min-width:140px}
+.flow-box.primary{border-color:#0078D4;background:#0a1628}.flow-box.secondary{border-color:#3F8624;background:#0a1a0a}.flow-box.accent{border-color:#c8420a;background:#1a0f0a}.flow-box.purple{border-color:#8C4FFF;background:#140a28}.flow-box.warning{border-color:#FF9900;background:#1a1400}
+.flow-arrow{color:#555;font-size:1.5rem}.flow-label{font-size:0.7rem;color:#888;margin-top:0.2rem}
+table{width:100%;border-collapse:collapse;margin:1rem 0;font-size:0.85rem}
+th{background:#1a1b1a;color:#c8420a;text-align:left;padding:0.75rem;border:1px solid #2a2b2a;font-weight:600}
+td{padding:0.75rem;border:1px solid #2a2b2a;color:#f5f2eb}tr:nth-child(even){background:#111211}tr:hover{background:#1a1b1a}
+.check{color:#3F8624}.x{color:#DD344C}
+.checklist{list-style:none;padding:0}.checklist li{padding:0.4rem 0;padding-left:1.5rem;position:relative;font-size:0.9rem}.checklist li::before{content:"[  ]";position:absolute;left:0;color:#c8420a;font-size:0.85rem}
+code{background:#1a1b1a;padding:0.15rem 0.4rem;border-radius:3px;font-size:0.85rem;color:#c8420a}
+pre{background:#1a1b1a;border:1px solid #2a2b2a;border-radius:8px;padding:1.25rem;overflow-x:auto;font-size:0.85rem;margin:1rem 0}
+.data-flow-step{display:flex;align-items:flex-start;gap:1rem;margin:0.75rem 0}.step-num{background:#c8420a;color:#fff;min-width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.8rem;font-weight:700;flex-shrink:0}.step-text{font-size:0.9rem}
+footer{background:#1a1b1a;border-top:2px solid #c8420a;padding:2rem 0;margin-top:3rem;text-align:center;font-size:0.8rem;color:#555}
+.section{margin-bottom:2rem}
+</style>
+</head>
+<body>
+<header>
+<div class="container">
+<div>
+<h1>terraform-azure-application-gateway</h1>
+<p style="color:#888;margin-top:0.3rem;font-size:0.9rem">Azure Application Gateway v2 with WAF Module</p>
+</div>
+<div>
+<span class="badge">Azure</span>
+<span class="badge badge-type">Networking</span>
+</div>
+</div>
+</header>
+
+<div class="container">
+
+<section class="section">
+<h2>Executive Summary</h2>
+<div class="summary">
+Terraform module for deploying Azure Application Gateway v2 with Web Application Firewall (WAF_v2), autoscaling, multi-site hosting with SNI, end-to-end TLS termination, HTTP-to-HTTPS redirects, URL rewrite rules, custom health probes, and zone-redundant deployment. Includes OWASP 3.2 and Bot Manager managed rule sets. Supports dynamic configuration of backend pools, listeners, routing rules, SSL certificates from Key Vault, and user-assigned managed identities.
+</div>
+</section>
+
+<section class="section">
+<h2>Overview Cards</h2>
+<div class="cards">
+<div class="card"><div class="card-title">Resources</div><div class="card-value">2</div><div class="card-desc">App Gateway + WAF Policy</div></div>
+<div class="card"><div class="card-title">Variables</div><div class="card-value">20</div><div class="card-desc">5 required, 15 optional</div></div>
+<div class="card"><div class="card-title">Outputs</div><div class="card-value">6</div><div class="card-desc">IDs, WAF policy, pool/listener maps</div></div>
+<div class="card"><div class="card-title">SKU Tier</div><div class="card-value">WAF_v2</div><div class="card-desc">Standard_v2 / WAF_v2</div></div>
+<div class="card"><div class="card-title">WAF Rules</div><div class="card-value">OWASP 3.2</div><div class="card-desc">+ Bot Manager 1.0</div></div>
+<div class="card"><div class="card-title">Zones</div><div class="card-value">1, 2, 3</div><div class="card-desc">Zone-redundant by default</div></div>
+</div>
+</section>
+
+<section class="section">
+<h2>Architecture Diagram</h2>
+<div class="arch-diagram">
+<div class="flow">
+<div class="flow-row">
+<div class="flow-box warning">Client Requests<div class="flow-label">Internet traffic</div></div>
+</div>
+<div class="flow-arrow">&#x2193;</div>
+<div class="flow-row">
+<div class="flow-box primary">Public IP Address<div class="flow-label">Frontend IP</div></div>
+</div>
+<div class="flow-arrow">&#x2193;</div>
+<div class="flow-row">
+<div class="flow-box accent">WAF Policy<div class="flow-label">OWASP 3.2 + Bot Manager (Prevention)</div></div>
+</div>
+<div class="flow-arrow">&#x2193;</div>
+<div class="flow-row">
+<div class="flow-box primary">HTTP/HTTPS Listeners<div class="flow-label">Multi-site hosting, SNI</div></div>
+<div class="flow-box primary">SSL Certificates<div class="flow-label">Key Vault integration</div></div>
+</div>
+<div class="flow-arrow">&#x2193;</div>
+<div class="flow-row">
+<div class="flow-box warning">Routing Rules<div class="flow-label">Basic / Path-based</div></div>
+<div class="flow-box purple">Redirect Configs<div class="flow-label">HTTP to HTTPS</div></div>
+<div class="flow-box purple">Rewrite Rules<div class="flow-label">Headers / URL</div></div>
+</div>
+<div class="flow-arrow">&#x2193;</div>
+<div class="flow-row">
+<div class="flow-box secondary">Backend Pool: App<div class="flow-label">FQDN / IP targets</div></div>
+<div class="flow-box secondary">Backend Pool: API<div class="flow-label">FQDN / IP targets</div></div>
+</div>
+<div class="flow-arrow">&#x2193;</div>
+<div class="flow-row">
+<div class="flow-box accent">Health Probes<div class="flow-label">Custom path, interval, threshold</div></div>
+</div>
+</div>
+</div>
+</section>
+
+<section class="section">
+<h2>Component Breakdown</h2>
+<table>
+<tr><th>Component</th><th>Resource Type</th><th>Purpose</th><th>Configuration</th></tr>
+<tr><td>Application Gateway</td><td><code>azurerm_application_gateway</code></td><td>L7 load balancer with WAF</td><td>WAF_v2 SKU, zone-redundant, HTTP/2</td></tr>
+<tr><td>WAF Policy</td><td><code>azurerm_web_application_firewall_policy</code></td><td>Web application firewall rules</td><td>OWASP 3.2, Bot Manager, Prevention mode</td></tr>
+<tr><td>Backend Pools</td><td>Dynamic block</td><td>Target pools (FQDN or IP)</td><td>for_each map</td></tr>
+<tr><td>HTTP Listeners</td><td>Dynamic block</td><td>Listen on ports with optional SNI</td><td>Multi-site, SSL certificate binding</td></tr>
+<tr><td>Routing Rules</td><td>Dynamic block</td><td>Route requests to backends</td><td>Basic or Path-based, priority ordering</td></tr>
+<tr><td>Health Probes</td><td>Dynamic block</td><td>Monitor backend health</td><td>Custom path, interval, match codes</td></tr>
+<tr><td>Rewrite Rules</td><td>Dynamic block</td><td>Modify request/response headers/URL</td><td>Conditions, header configs, URL rewrite</td></tr>
+<tr><td>SSL Certificates</td><td>Dynamic block</td><td>TLS termination</td><td>Key Vault or inline certificates</td></tr>
+</table>
+</section>
+
+<section class="section">
+<h2>Data Flow</h2>
+<div class="data-flow-step"><div class="step-num">1</div><div class="step-text">Client sends HTTPS request to the Application Gateway's public IP.</div></div>
+<div class="data-flow-step"><div class="step-num">2</div><div class="step-text">WAF inspects the request against OWASP 3.2 and Bot Manager rules; blocks malicious traffic.</div></div>
+<div class="data-flow-step"><div class="step-num">3</div><div class="step-text">HTTP listener matches the request by host name and port (multi-site with SNI).</div></div>
+<div class="data-flow-step"><div class="step-num">4</div><div class="step-text">Routing rule directs the request to the appropriate backend pool.</div></div>
+<div class="data-flow-step"><div class="step-num">5</div><div class="step-text">Rewrite rules modify headers or URL path before forwarding.</div></div>
+<div class="data-flow-step"><div class="step-num">6</div><div class="step-text">Application Gateway forwards to healthy backend targets (verified via health probes).</div></div>
+</section>
+
+<section class="section">
+<h2>Security Controls</h2>
+<table>
+<tr><th>Control</th><th>Implementation</th><th>Default</th></tr>
+<tr><td>WAF</td><td>OWASP 3.2 + Bot Manager, Prevention mode</td><td>Enabled</td></tr>
+<tr><td>TLS Termination</td><td>SSL certificates from Key Vault or inline</td><td>Configurable</td></tr>
+<tr><td>End-to-End TLS</td><td>Trusted root certificates for backend</td><td>Optional</td></tr>
+<tr><td>HTTP to HTTPS</td><td>Redirect configurations</td><td>Configurable</td></tr>
+<tr><td>Request Limits</td><td>File upload 100MB, body 128KB</td><td>WAF defaults</td></tr>
+<tr><td>Zone Redundancy</td><td>Deployed across 3 availability zones</td><td>Enabled</td></tr>
+<tr><td>Managed Identity</td><td>User-assigned for Key Vault access</td><td>Optional</td></tr>
+</table>
+</section>
+
+<section class="section">
+<h2>Industry Adaptation</h2>
+<table>
+<tr><th>Capability</th><th>Healthcare</th><th>Finance</th><th>Government</th><th>Retail</th><th>SaaS</th></tr>
+<tr><td>WAF Prevention</td><td class="check">&#10003;</td><td class="check">&#10003;</td><td class="check">&#10003;</td><td class="check">&#10003;</td><td class="check">&#10003;</td></tr>
+<tr><td>End-to-End TLS</td><td class="check">&#10003;</td><td class="check">&#10003;</td><td class="check">&#10003;</td><td class="check">&#10003;</td><td class="check">&#10003;</td></tr>
+<tr><td>Multi-site Hosting</td><td>Optional</td><td>Optional</td><td>Optional</td><td class="check">&#10003;</td><td class="check">&#10003;</td></tr>
+<tr><td>Bot Protection</td><td class="check">&#10003;</td><td class="check">&#10003;</td><td class="check">&#10003;</td><td class="check">&#10003;</td><td class="check">&#10003;</td></tr>
+<tr><td>Zone Redundancy</td><td class="check">&#10003;</td><td class="check">&#10003;</td><td class="check">&#10003;</td><td class="check">&#10003;</td><td class="check">&#10003;</td></tr>
+<tr><td>URL Rewriting</td><td>Optional</td><td>Optional</td><td>Optional</td><td class="check">&#10003;</td><td class="check">&#10003;</td></tr>
+</table>
+</section>
+
+<section class="section">
+<h2>Production Readiness Checklist</h2>
+<ul class="checklist">
+<li>Enable WAF in Prevention mode</li>
+<li>Configure SSL certificates from Key Vault</li>
+<li>Set up HTTP to HTTPS redirect</li>
+<li>Configure custom health probes for each backend</li>
+<li>Enable autoscaling with appropriate min/max</li>
+<li>Deploy across 3 availability zones</li>
+<li>Enable HTTP/2 for performance</li>
+<li>Set up managed identity for Key Vault access</li>
+<li>Configure trusted root certificates for E2E TLS</li>
+<li>Review WAF rule exclusions for false positives</li>
+</ul>
+</section>
+
+<section class="section">
+<h2>Configuration Reference</h2>
+<table>
+<tr><th>Variable</th><th>Type</th><th>Default</th><th>Description</th></tr>
+<tr><td><code>name</code></td><td>string</td><td>required</td><td>Application Gateway name</td></tr>
+<tr><td><code>subnet_id</code></td><td>string</td><td>required</td><td>Dedicated subnet ID</td></tr>
+<tr><td><code>public_ip_id</code></td><td>string</td><td>required</td><td>Public IP resource ID</td></tr>
+<tr><td><code>sku_tier</code></td><td>string</td><td>WAF_v2</td><td>Standard_v2 or WAF_v2</td></tr>
+<tr><td><code>waf_enabled</code></td><td>bool</td><td>true</td><td>Enable WAF</td></tr>
+<tr><td><code>waf_mode</code></td><td>string</td><td>Prevention</td><td>Detection or Prevention</td></tr>
+<tr><td><code>enable_autoscaling</code></td><td>bool</td><td>true</td><td>Enable autoscaling</td></tr>
+<tr><td><code>backend_address_pools</code></td><td>map(object)</td><td>required</td><td>Backend pool definitions</td></tr>
+<tr><td><code>http_listeners</code></td><td>map(object)</td><td>required</td><td>Listener definitions</td></tr>
+<tr><td><code>request_routing_rules</code></td><td>map(object)</td><td>required</td><td>Routing rule definitions</td></tr>
+</table>
+</section>
+
+<section class="section">
+<h2>Deployment</h2>
+<pre>
+terraform init
+terraform plan -out=tfplan
+terraform apply tfplan
+
+# Verify the Application Gateway
+az network application-gateway show \
+  --name appgw-prod \
+  --resource-group rg-networking \
+  --query "operationalState" -o tsv
+</pre>
+</section>
+
+<section class="section">
+<h2>Links</h2>
+<p>
+<a href="https://learn.microsoft.com/en-us/azure/application-gateway/overview">Azure Application Gateway Docs</a> |
+<a href="https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/application_gateway">Terraform App Gateway Resource</a> |
+<a href="../README.md">Module README</a> |
+<a href="../examples/">Examples</a>
+</p>
+</section>
+
+</div>
+
+<footer>
+<div class="container">
+<p>terraform-azure-application-gateway Architecture Document</p>
+<p>Generated on 2026-03-15 | Terraform Azure Module</p>
+</div>
+</footer>
+</body>
+</html>
