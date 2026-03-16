@@ -25,7 +25,7 @@ resource "azurerm_web_application_firewall_policy" "this" {
     }
   }
 
-  tags = local.default_tags
+  tags = var.tags
 }
 
 resource "azurerm_application_gateway" "this" {
@@ -36,10 +36,10 @@ resource "azurerm_application_gateway" "this" {
   enable_http2        = var.enable_http2
   firewall_policy_id  = var.waf_enabled ? azurerm_web_application_firewall_policy.this[0].id : null
 
-  tags = local.default_tags
+  tags = var.tags
 
   sku {
-    name = local.sku_name
+    name = var.sku_tier
     tier = var.sku_tier
   }
 
@@ -52,12 +52,12 @@ resource "azurerm_application_gateway" "this" {
   }
 
   gateway_ip_configuration {
-    name      = local.gateway_ip_configuration_name
+    name      = "appgw-gateway-ip"
     subnet_id = var.subnet_id
   }
 
   frontend_ip_configuration {
-    name                 = local.frontend_ip_configuration_name
+    name                 = "appgw-frontend-ip"
     public_ip_address_id = var.public_ip_id
   }
 
@@ -133,7 +133,7 @@ resource "azurerm_application_gateway" "this" {
     for_each = var.http_listeners
     content {
       name                           = http_listener.key
-      frontend_ip_configuration_name = local.frontend_ip_configuration_name
+      frontend_ip_configuration_name = "appgw-frontend-ip"
       frontend_port_name             = http_listener.value.frontend_port_name
       protocol                       = http_listener.value.protocol
       host_names                     = http_listener.value.host_names

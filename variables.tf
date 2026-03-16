@@ -14,7 +14,7 @@ variable "location" {
 }
 
 variable "sku_tier" {
-  description = "SKU tier for the Application Gateway. Must be WAF_v2 for WAF support."
+  description = "SKU tier for the Application Gateway (Standard_v2 or WAF_v2)."
   type        = string
   default     = "WAF_v2"
 
@@ -65,7 +65,7 @@ variable "waf_enabled" {
 }
 
 variable "waf_mode" {
-  description = "WAF mode: Detection or Prevention."
+  description = "WAF mode (Detection or Prevention)."
   type        = string
   default     = "Prevention"
 }
@@ -118,12 +118,12 @@ variable "backend_address_pools" {
 variable "backend_http_settings" {
   description = "Map of backend HTTP settings."
   type = map(object({
-    port                  = number
-    protocol              = string
-    cookie_based_affinity = optional(string, "Disabled")
-    request_timeout       = optional(number, 30)
-    pick_host_name        = optional(bool, false)
-    probe_name            = optional(string)
+    port                    = number
+    protocol                = string
+    cookie_based_affinity   = optional(string, "Disabled")
+    request_timeout         = optional(number, 30)
+    pick_host_name          = optional(bool, false)
+    probe_name              = optional(string)
     trusted_root_cert_names = optional(list(string), [])
   }))
 }
@@ -158,13 +158,13 @@ variable "http_listeners" {
 variable "request_routing_rules" {
   description = "Map of request routing rules."
   type = map(object({
-    rule_type                  = optional(string, "Basic")
-    priority                   = number
-    http_listener_name         = string
-    backend_address_pool_name  = optional(string)
-    backend_http_settings_name = optional(string)
+    rule_type                   = optional(string, "Basic")
+    priority                    = number
+    http_listener_name          = string
+    backend_address_pool_name   = optional(string)
+    backend_http_settings_name  = optional(string)
     redirect_configuration_name = optional(string)
-    url_path_map_name          = optional(string)
+    url_path_map_name           = optional(string)
   }))
 }
 
@@ -209,7 +209,7 @@ variable "rewrite_rule_sets" {
 }
 
 variable "frontend_ports" {
-  description = "Map of frontend ports."
+  description = "Map of frontend port names to port numbers."
   type        = map(number)
   default = {
     "http"  = 80
